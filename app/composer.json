@@ -1,0 +1,23 @@
+{
+  "name": "babymap-server",
+  "repositories": [
+    {
+      "type": "pear",
+      "url": "http://pear.cakephp.org"
+    }
+  ],
+  "require": {
+    "cakephp/cakephp": "2.8.*",
+    "aws/aws-sdk-php": "2.*"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "3.7.*",
+    "cakephp/debug_kit" : "2.2.*"
+  },
+  "config": {
+    "vendor-dir": "Vendor/"
+  },
+  "bin": [
+    "lib/Cake/Console/cake"
+  ]
+}

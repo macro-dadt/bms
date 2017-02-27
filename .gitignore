@@ -1,0 +1,33 @@
+# User specific & automatically generated files #
+#################################################
+/app/Config/database.php
+/app/tmp/cache/models/*
+/app/tmp/cache/persistent/*
+/app/tmp/cache/views/*
+/app/tmp/logs/*
+/app/tmp/sessions/*
+/app/tmp/tests/*
+/app/tmp/cookies/*
+!/app/tmp/*/empty
+!/app/tmp/*/*/empty
+/app/Plugin/*
+!/app/Plugin/AmazonWebServices
+!/app/Plugin/empty
+/app/Vendor/*
+!/app/Vendor/empty
+
+# IDE and editor specific files #
+#################################
+.idea
+.vagrant
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
