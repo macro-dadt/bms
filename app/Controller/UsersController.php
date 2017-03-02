@@ -16,13 +16,29 @@ class UsersController extends AppController
     {
         parent::beforeFilter();
         $this->Auth->allow('api_generate');
+
+
+        parent::new_beforeFilter();
+        $this->Auth->allow('api_new_generate');
     }
 
     /**
      * 新規ユーザーの生成
-     *
+     *generate new user
      * @return mixed
      */
+    public function api_new_generate()
+    {
+        if ($this->User->new_generate($this->request->data('User.email'), $this->request->data('User.social_id'), $this->request->data('User.password'))) {
+            // 登録が完了したらログインする
+            $this->setAction('api_login');
+        } else {
+            $this->set(array(
+                'errors'     => $this->User->validationErrors,
+                '_serialize' => array('errors')
+            ));
+        }
+    }
     public function api_generate()
     {
         if ($this->User->generate($this->request->data('User.uuid'), $this->request->data('User.password'))) {
@@ -48,7 +64,6 @@ class UsersController extends AppController
             throw new ForbiddenException;
         }
     }
-
     public function api_logout()
     {
         if($this->Auth->logout()) {
@@ -132,6 +147,21 @@ class UsersController extends AppController
         ));
     }
 
+    public function api_new_view()
+    {
+        if($this->request->query('email')) {
+            $user_email = $this->request->query('email');
+        } else {
+            $user_email = $this->Auth->user('email');
+        }
+
+        $user = $this->User->new_view($user_email);
+
+        $this->set(array(
+            'user'       => $user,
+            '_serialize' => array('user')
+        ));
+    }
     /**
      * お気に入りを非公開にする
      *

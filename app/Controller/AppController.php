@@ -70,6 +70,29 @@ class AppController extends Controller
             }
         }
     }
+    public function new_beforeFilter()
+    {
+        //exit(0);
+
+        if ($this->request->prefix == 'api') {
+            $this->Auth->authenticate = array(
+                'Form'             => array(
+                    'fields'    => array(
+                        'email' => 'email',
+                        'social_id'=> 'social_id',
+                        'password' => 'password'
+                    ),
+                    'userModel' => 'User',
+                ),
+            );
+            // 最終利用日時更新
+            if ($this->Auth->user()) {
+                $User = ClassRegistry::init('User');
+                $User->updateLastUsed($this->Auth->user('id'));
+            }
+        }
+    }
+
 
     /**
      * Before Render

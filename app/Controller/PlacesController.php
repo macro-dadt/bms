@@ -54,6 +54,23 @@ class PlacesController extends AppController
         }
     }
 
+    // add nursing room, just for admin
+    public function api_add_nursing_room()
+    {
+        if ($this->Place->add_nursing($this->request->data)) {
+            $this->set([
+                'place_id'     => $this->Place->getLastInsertId(),
+                '_serialize' => ['result']
+            ]);
+        } else {
+            $this->set(array(
+                'errors'     => array_merge($this->Place->validationErrors),
+                '_serialize' => array('errors')
+            ));
+        }
+    }
+
+
     /**
      * 施設変更元データ取得
      *
@@ -192,6 +209,32 @@ class PlacesController extends AppController
 
         // フラグ変更
         $result = $this->Place->setDelete($place_id, $is_closed);
+
+        if ($result) {
+            $this->set(array(
+                'result'     => 'success',
+                '_serialize' => array('result')
+            ));
+        } else {
+            $this->set(array(
+                'error'      => '変更出来ませんでした',
+                '_serialize' => array('error')
+            ));
+        }
+
+    }
+
+    ///new api
+
+    public function api_busy()
+    {
+        // 対象の施設ID
+        $place_id = $this->request->data('place_id');
+        // フラグの状態
+        $is_busy =   $this->request->data('is_busy');
+
+        // フラグ変更
+        $result = $this->Place->set($place_id, $is_busy);
 
         if ($result) {
             $this->set(array(

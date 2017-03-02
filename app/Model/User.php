@@ -128,6 +128,41 @@ class User extends AppModel
                 ),
             )
         ),
+        'new_generate'     => array(
+            'new_password' => array(
+                'required'     => array(
+                    'rule'     => 'notBlank',
+                    'message'  => '未指定です',
+                    'required' => true
+                ),
+                'alphaNumeric' => array(
+                    'rule'    => 'alphaNumeric',
+                    'message' => '半角英数のみ利用可能です',
+                ),
+                'maxLength'    => array(
+                    'rule'    => array('maxLength', 40),
+                    'message' => '%s字以内で入力してください'
+                ),
+            ),
+            'social_id' => array(
+                'required'     => array(
+                    'rule'     => 'notBlank',
+                    'message'  => '未指定です',
+                    'required' => true
+                )
+            ),
+            'email'    => array(
+                'email' => array(
+                    'rule'       => 'email',
+                    'message'    => '書式が正しくありません',
+                    'allowEmpty' => true
+                ),
+                'isUnique' => array(
+                    'rule'    => 'isUnique',
+                    'message' => '登録されています',
+                ),
+            ),
+        ),
         'saveNickname' => array(
             'name' => array(
                 'required'  => array(
@@ -246,6 +281,15 @@ class User extends AppModel
         ), array('_validate' => 'generate'));
     }
 
+    public function new_generate($email, $social_id, $new_password)
+    {
+        return $this->save(array(
+            'social_id'      => $social_id,
+            'email'      => $email,
+            'new_password'  => $new_password,
+            'generated' => date('Y-m-d H:i:s')
+        ), array('_validate' => 'new_generate'));
+    }
     /**
      * ニックネーム登録
      *
@@ -335,6 +379,42 @@ class User extends AppModel
                 $this->alias . '.point',
                 $this->alias . '.tel',
                 $this->alias . '.email',
+            ),
+            'contain'    => array(
+                'Child'     => array(
+                    'fields' => array(
+                        'Child.number',
+                        'Child.birthday',
+                        'Child.gendar',
+                    )
+                ),
+                'UserImage' => array(
+                    'fields' => array(
+                        'UserImage.path',
+                        'UserImage.url',
+                        'UserImage.del_flg',
+                    )
+                ),
+            )
+        ));
+    }
+    public function new_view($email)
+    {
+        return $this->find('first', array(
+            'conditions' => array(
+                $this->alias . '.email' => $email
+            ),
+            'fields'     => array(
+                $this->alias . '.name',
+                $this->alias . '.fullname',
+                $this->alias . '.zipcode',
+                $this->alias . '.address',
+                $this->alias . '.birthday',
+                $this->alias . '.point',
+                $this->alias . '.tel',
+                $this->alias . '.email',
+                $this->alias . '.new_password',
+                $this->alias . '.social_id'
             ),
             'contain'    => array(
                 'Child'     => array(
@@ -646,7 +726,7 @@ class User extends AppModel
         ));
     }
     public function getUserDataWithEmail($email)
-    {
+        {
         return $this->find('first', array(
             $this->alias . '.email' => $email
         ));

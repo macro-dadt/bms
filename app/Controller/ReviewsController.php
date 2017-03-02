@@ -111,6 +111,7 @@ class ReviewsController extends AppController
             $this->set(array(
                 'error' => '取得できませんでした',
                 '_serialize' => array('error')
+
             ));
         } else {
             $this->set(array(
