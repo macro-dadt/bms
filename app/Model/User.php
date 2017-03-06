@@ -422,11 +422,11 @@ class User extends AppModel
     }
     public function new_view($email,$social_id)
     {
-
+        $data = $this->findByEmail($email);
+        if(!empty($data['User']['email'])) {
             return $this->find('first', array(
                 'conditions' => array(
                     $this->alias . '.email' => $email,
-                     $this->alias . '.social_id' => $social_id
                 ),
                 'fields' => array(
                     $this->alias . '.name',
@@ -457,7 +457,44 @@ class User extends AppModel
                     ),
                 )
             ));
-
+        } else {
+            $data = $this->findBySocial_id($social_id);
+            if(!empty($data['User']['social_id'])) {
+                return $this->find('first', array(
+                    'conditions' => array(
+                        $this->alias . '.social_id' => $social_id,
+                    ),
+                    'fields' => array(
+                        $this->alias . '.name',
+                        $this->alias . '.fullname',
+                        $this->alias . '.zipcode',
+                        $this->alias . '.address',
+                        $this->alias . '.birthday',
+                        $this->alias . '.point',
+                        $this->alias . '.tel',
+                        $this->alias . '.email',
+                        $this->alias . '.new_password',
+                        $this->alias . '.social_id'
+                    ),
+                    'contain' => array(
+                        'Child' => array(
+                            'fields' => array(
+                                'Child.number',
+                                'Child.birthday',
+                                'Child.gendar',
+                            )
+                        ),
+                        'UserImage' => array(
+                            'fields' => array(
+                                'UserImage.path',
+                                'UserImage.url',
+                                'UserImage.del_flg',
+                            )
+                        ),
+                    )
+                ));
+            }
+        }
     }
     /**
      * 最終利用日時更新
@@ -804,14 +841,18 @@ class User extends AppModel
      * @param  [type]  $userId [description]
      * @return boolean         [description]
      */
-    public function isRegistered($userId)
+    public function isRegistered($userEmail,$userSocial_id)
     {
-        $data = $this->findById($userId);
-
-        if(!empty($data['User']['name'])) {
+        $data = $this->findByEmail($userEmail);
+        if(!empty($data['User']['email'])) {
             return true;
         } else {
-            return false;
+            $data = $this->findBySocial_id($userSocial_id);
+            if(!empty($data['User']['social_id'])) {
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 }

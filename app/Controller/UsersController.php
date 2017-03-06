@@ -493,7 +493,19 @@ class UsersController extends AppController
      */
     public function api_registered()
     {
-        $result = $this->User->isRegistered($this->Auth->user('id'));
+        if($this->request->query('email')) {
+            $user_email = $this->request->query('email');
+        }
+        else {
+            $user_email = $this->Auth->user('email');
+        }
+        if($this->request->query('social_id')) {
+            $user_social_id = $this->request->query('social_id');
+        }
+        else {
+            $user_social_id = $this->Auth->user('social_id');
+        }
+        $result = $this->User->isRegistered($user_email, $user_social_id );
         if($result) {
             $this->set(array(
                 'result'     => 1,
