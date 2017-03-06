@@ -149,7 +149,13 @@ class User extends AppModel
                     'rule'     => 'notBlank',
                     'message'  => '未指定です',
                     'required' => true
-                )
+                ),
+
+                'isUnique' => array(
+                    'rule'    => 'isUnique',
+                    'message' => '登録されています',
+                ),
+
             ),
             'email'    => array(
                 'email' => array(
@@ -248,6 +254,15 @@ class User extends AppModel
                     'allowEmpty' => true
                 ),
             ),
+        ),
+     'recoverPassword' => array(
+            'email'    => array(
+                'email' => array(
+                    'rule'       => 'email',
+                    'message'    => '書式が正しくありません',
+                    'allowEmpty' => true
+                ),
+            ),
         )
     );
 
@@ -256,9 +271,16 @@ class User extends AppModel
      */
     public function beforeSave($options = array())
     {
+        parent::beforeSave($options);
+       /* if (!empty($this->data[$this->alias]['new_password'])) {
+            $haser = new SimplePasswordHasher();
+            $this->data[$this->alias]['new_password'] = $haser->hash($this->data[$this->alias]['new_password']);
+        } else {
+            unset($this->data[$this->alias]['new_password']);
+        }*/
         if (!empty($this->data[$this->alias]['password'])) {
             $haser = new SimplePasswordHasher();
-            $this->data[$this->alias]['password'] = $haser->hash($this->data[$this->alias]['password']);
+            $this->data[$this->alias]['new_password'] = $haser->hash($this->data[$this->alias]['password']);
         } else {
             unset($this->data[$this->alias]['password']);
         }
@@ -398,41 +420,44 @@ class User extends AppModel
             )
         ));
     }
-    public function new_view($email)
+    public function new_view($email,$social_id)
     {
-        return $this->find('first', array(
-            'conditions' => array(
-                $this->alias . '.email' => $email
-            ),
-            'fields'     => array(
-                $this->alias . '.name',
-                $this->alias . '.fullname',
-                $this->alias . '.zipcode',
-                $this->alias . '.address',
-                $this->alias . '.birthday',
-                $this->alias . '.point',
-                $this->alias . '.tel',
-                $this->alias . '.email',
-                $this->alias . '.new_password',
-                $this->alias . '.social_id'
-            ),
-            'contain'    => array(
-                'Child'     => array(
-                    'fields' => array(
-                        'Child.number',
-                        'Child.birthday',
-                        'Child.gendar',
-                    )
+
+            return $this->find('first', array(
+                'conditions' => array(
+                    $this->alias . '.email' => $email,
+                     $this->alias . '.social_id' => $social_id
                 ),
-                'UserImage' => array(
-                    'fields' => array(
-                        'UserImage.path',
-                        'UserImage.url',
-                        'UserImage.del_flg',
-                    )
+                'fields' => array(
+                    $this->alias . '.name',
+                    $this->alias . '.fullname',
+                    $this->alias . '.zipcode',
+                    $this->alias . '.address',
+                    $this->alias . '.birthday',
+                    $this->alias . '.point',
+                    $this->alias . '.tel',
+                    $this->alias . '.email',
+                    $this->alias . '.new_password',
+                    $this->alias . '.social_id'
                 ),
-            )
-        ));
+                'contain' => array(
+                    'Child' => array(
+                        'fields' => array(
+                            'Child.number',
+                            'Child.birthday',
+                            'Child.gendar',
+                        )
+                    ),
+                    'UserImage' => array(
+                        'fields' => array(
+                            'UserImage.path',
+                            'UserImage.url',
+                            'UserImage.del_flg',
+                        )
+                    ),
+                )
+            ));
+
     }
     /**
      * 最終利用日時更新
@@ -545,6 +570,7 @@ class User extends AppModel
      */
     public function deviceChangeRequest($userId, $email)
     {
+
         $data = array(
             'User' => array(
                 'id' => $userId,
@@ -557,6 +583,46 @@ class User extends AppModel
             '_validate' => 'deviceChange'
         ))) {
             return $this->findById($userId);
+        } else {
+            return false;
+        }
+    }
+    public function recoverPasswordRequest($email)
+    {
+        $data = array(
+            'User' => array(
+                'new_password'=> $this->generateRandomString()
+            )
+        );
+
+        if($this->save($data, array(
+            '_validate' => 'recoverPassword'
+        ))) {
+            return $this->findByEmail($email);
+        } else {
+            return false;
+        }
+    }
+    function generateRandomString($length = 6) {
+        $characters = '0123456789';
+        $charactersLength = strlen($characters);
+        $randomString = '';
+        for ($i = 0; $i < $length; $i++) {
+            $randomString .= $characters[rand(0, $charactersLength - 1)];
+        }
+        return $randomString;
+    }
+    function change_password($new_password){
+        $data = array(
+            'User' => array(
+                'new_password'=> $new_password
+            )
+        );
+
+        if($this->save($data, array(
+            '_validate' => 'change_password'
+        ))) {
+            return true;
         } else {
             return false;
         }
@@ -748,5 +814,4 @@ class User extends AppModel
             return false;
         }
     }
-
 }

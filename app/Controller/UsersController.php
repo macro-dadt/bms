@@ -16,10 +16,7 @@ class UsersController extends AppController
     {
         parent::beforeFilter();
         $this->Auth->allow('api_generate');
-
-
-        parent::new_beforeFilter();
-        $this->Auth->allow('api_new_generate');
+       $this->Auth->allow('api_new_generate');
     }
 
     /**
@@ -29,7 +26,7 @@ class UsersController extends AppController
      */
     public function api_new_generate()
     {
-        if ($this->User->new_generate($this->request->data('User.email'), $this->request->data('User.social_id'), $this->request->data('User.password'))) {
+        if ($this->User->new_generate($this->request->data('User.email'), $this->request->data('User.social_id'), $this->request->data('User.new_password'))) {
             // 登録が完了したらログインする
             $this->setAction('api_login');
         } else {
@@ -94,6 +91,7 @@ class UsersController extends AppController
 
     /**
      * ユーザー情報変更バリデードのみ
+     * not use
      */
     public function api_validate()
     {
@@ -151,12 +149,17 @@ class UsersController extends AppController
     {
         if($this->request->query('email')) {
             $user_email = $this->request->query('email');
-        } else {
+        }
+        else {
             $user_email = $this->Auth->user('email');
         }
-
-        $user = $this->User->new_view($user_email);
-
+        if($this->request->query('social_id')) {
+            $user_social_id = $this->request->query('social_id');
+        }
+        else {
+            $user_social_id = $this->Auth->user('social_id');
+        }
+        $user = $this->User->new_view($user_email,$user_social_id);
         $this->set(array(
             'user'       => $user,
             '_serialize' => array('user')
@@ -262,7 +265,50 @@ class UsersController extends AppController
                 '_serialize' => array('errors')
             ));
         }
+        return true;
     }
+
+    public function api_recovery_password()
+    {
+         if ($this->Auth->login()){
+             $email = $this->request->data('User.email');
+             $user = $this->User->recoverPasswordRequest($email);
+             if($user) {
+
+                 // メール送信
+                 $Email = new CakeEmail();
+                 $result = $Email->viewVars($user)
+                     ->template('recovery/user', 'default')
+                     ->emailFormat('text')
+                     ->to($email)
+                     ->from('support@trim-inc.com')
+                     ->subject('【Baby map】パスワードリカバリのお知らせ')
+                     ->send();
+
+                 if($result) {
+                     $this->set(array(
+                         'result'     => 'success',
+                         '_serialize' => array('result')
+                     ));
+                 } else {
+                     $this->set(array(
+                         'errors'     => '送信できませんでした',
+                         '_serialize' => array('errors')
+                     ));
+                 }
+             } else {
+                 $this->set(array(
+                     'errors'     => '変更できませんでした',
+                     '_serialize' => array('errors')
+                 ));
+             }
+         }
+         else {
+             throw new ForbiddenException;
+         }
+
+    }
+
 
     /**
      * 機種変完了
@@ -301,6 +347,21 @@ class UsersController extends AppController
         } else {
             $this->set(array(
                 'errors'     => '変更できませんでした',
+                '_serialize' => array('errors')
+            ));
+        }
+    }
+    public function api_change_password(){
+        $new_password = $this->request->data('User.new_password');
+        if ($this->User->change_password($new_password)){
+            $this->set(array(
+                'result'     => 'success',
+                '_serialize' => array('result')
+            ));
+        }
+        else {
+            $this->set(array(
+                'errors'     => 'パスワード変更できません',
                 '_serialize' => array('errors')
             ));
         }
