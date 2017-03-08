@@ -7,6 +7,10 @@
  */
 class PlacesController extends AppController
 {
+    public function beforeFilter()
+    {
+        $this->Auth->allow('api_add_nursing_room');
+    }
 
     /**
      * Component
@@ -53,15 +57,14 @@ class PlacesController extends AppController
             ));
         }
     }
-
     // add nursing room, just for admin
     public function api_add_nursing_room()
     {
         if ($this->Place->add_nursing($this->request->data)) {
-            $this->set([
-                'place_id'     => $this->Place->getLastInsertId(),
-                '_serialize' => ['result']
-            ]);
+            $this->set(array(
+                'place_id'   => $this->Place->getLastInsertId(),
+                '_serialize' => array('result')
+            ));
         } else {
             $this->set(array(
                 'errors'     => array_merge($this->Place->validationErrors),
@@ -69,6 +72,9 @@ class PlacesController extends AppController
             ));
         }
     }
+
+
+
 
 
     /**
