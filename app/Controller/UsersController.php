@@ -8,25 +8,19 @@
  */
 class UsersController extends AppController
 {
-
     /**
      * Before Filter
      */
     public function beforeFilter()
     {
         parent::beforeFilter();
-        $this->Auth->allow('api_generate');
-       $this->Auth->allow('api_new_generate');
+        $this->Auth->allow('api_generate','api_new_generate','api_recovery_password','api_recovery_code_true','api_registered','api_new_password_true');
     }
 
-    /**
-     * 新規ユーザーの生成
-     *generate new user
-     * @return mixed
-     */
+
     public function api_new_generate()
     {
-        if ($this->User->new_generate($this->request->data('User.email'), $this->request->data('User.social_id'), $this->request->data('User.new_password'))) {
+        if ($this->User->new_generate($this->request->data('User.email'), $this->request->data('User.social_id'), $this->request->data('User.name'), $this->request->data('User.new_password'))) {
             // 登録が完了したらログインする
             $this->setAction('api_login');
         } else {
@@ -36,6 +30,11 @@ class UsersController extends AppController
             ));
         }
     }
+    /**
+     * 新規ユーザーの生成
+     *generate new user
+     * @return mixed
+     */
     public function api_generate()
     {
         if ($this->User->generate($this->request->data('User.uuid'), $this->request->data('User.password'))) {
@@ -270,7 +269,7 @@ class UsersController extends AppController
 
     public function api_recovery_password()
     {
-         if ($this->Auth->login()){
+
              $email = $this->request->data('User.email');
              $user = $this->User->recoverPasswordRequest($email);
              if($user) {
@@ -302,10 +301,6 @@ class UsersController extends AppController
                      '_serialize' => array('errors')
                  ));
              }
-         }
-         else {
-             throw new ForbiddenException;
-         }
 
     }
 
@@ -506,6 +501,44 @@ class UsersController extends AppController
             $user_social_id = $this->Auth->user('social_id');
         }
         $result = $this->User->isRegistered($user_email, $user_social_id );
+        if($result) {
+            $this->set(array(
+                'result'     => 1,
+                '_serialize' => array('result')
+            ));
+        } else {
+            $this->set(array(
+                'result'     => 0,
+                '_serialize' => array('result')
+            ));
+        }
+    }
+
+    public function api_recovery_code_true()
+
+    {
+        $user_recovery_code = $this->request->query('recovery_code');
+        $user_email = $this->request->query('email');
+        $result = $this->User->recoveryCodeTrue($user_email, $user_recovery_code);
+        if($result) {
+            $this->set(array(
+                'result'     => 1,
+                '_serialize' => array('result')
+            ));
+        } else {
+            $this->set(array(
+                'result'     => 0,
+                '_serialize' => array('result')
+            ));
+        }
+    }
+
+    public function api_new_password_true()
+
+    {
+        $user_new_password = $this->request->query('new_password');
+        $user_email = $this->request->query('email');
+        $result = $this->User->passwordTrue($user_email, $user_new_password);
         if($result) {
             $this->set(array(
                 'result'     => 1,

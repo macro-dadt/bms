@@ -145,17 +145,18 @@ class User extends AppModel
                 ),
             ),
             'social_id' => array(
-                'required'     => array(
-                    'rule'     => 'notBlank',
-                    'message'  => '未指定です',
-                    'required' => true
-                ),
-
                 'isUnique' => array(
                     'rule'    => 'isUnique',
                     'message' => '登録されています',
                 ),
 
+            ),
+            'name' => array(
+                'required'     => array(
+                    'rule'     => 'notBlank',
+                    'message'  => '未指定です',
+                    'required' => true
+                )
             ),
             'email'    => array(
                 'email' => array(
@@ -272,15 +273,15 @@ class User extends AppModel
     public function beforeSave($options = array())
     {
         parent::beforeSave($options);
-       /* if (!empty($this->data[$this->alias]['new_password'])) {
+        if (!empty($this->data[$this->alias]['new_password'])) {
             $haser = new SimplePasswordHasher();
             $this->data[$this->alias]['new_password'] = $haser->hash($this->data[$this->alias]['new_password']);
         } else {
             unset($this->data[$this->alias]['new_password']);
-        }*/
+        }
         if (!empty($this->data[$this->alias]['password'])) {
             $haser = new SimplePasswordHasher();
-            $this->data[$this->alias]['new_password'] = $haser->hash($this->data[$this->alias]['password']);
+            $this->data[$this->alias]['password'] = $haser->hash($this->data[$this->alias]['password']);
         } else {
             unset($this->data[$this->alias]['password']);
         }
@@ -303,14 +304,39 @@ class User extends AppModel
         ), array('_validate' => 'generate'));
     }
 
-    public function new_generate($email, $social_id, $new_password)
+    public function new_generate($email, $social_id, $name, $new_password)
+    {
+        if ($email == "")
     {
         return $this->save(array(
             'social_id'      => $social_id,
-            'email'      => $email,
             'new_password'  => $new_password,
+            'name'  => $name,
             'generated' => date('Y-m-d H:i:s')
         ), array('_validate' => 'new_generate'));
+    }
+    else
+    {
+        if ($social_id == ""){
+            return $this->save(array(
+                'email'      => $email,
+                'new_password'  => $new_password,
+                'name'  => $name,
+                'generated' => date('Y-m-d H:i:s')
+            ), array('_validate' => 'new_generate'));
+        }
+        else{
+            return $this->save(array(
+                'social_id'      => $social_id,
+                'email'      => $email,
+                'new_password'  => $new_password,
+                'name'  => $name,
+                'generated' => date('Y-m-d H:i:s')
+            ), array('_validate' => 'new_generate'));
+        }
+
+    }
+
     }
     /**
      * ニックネーム登録
@@ -624,17 +650,16 @@ class User extends AppModel
             return false;
         }
     }
+
     public function recoverPasswordRequest($email)
     {
         $data = array(
             'User' => array(
-                'new_password'=> $this->generateRandomString()
+                'recovery_code'=> $this->generateRandomString()
             )
         );
 
-        if($this->save($data, array(
-            '_validate' => 'recoverPassword'
-        ))) {
+        if($this->save($data)) {
             return $this->findByEmail($email);
         } else {
             return false;
@@ -855,4 +880,25 @@ class User extends AppModel
             }
         }
     }
+    public function recoveryCodeTrue($user_email, $user_recovery_code)
+    {
+        $data = $this->findByEmail($user_email);
+        if($data['User']['recovery_code'] == $user_recovery_code) {
+            return true;
+        } else {
+            return false;
+
+        }
+    }
+    public function passwordTrue($user_email, $user_new_password)
+    {
+        $data = $this->findByEmail($user_email);
+        if($data['User']['new_password'] == $user_new_password) {
+            return true;
+        } else {
+            return false;
+
+        }
+    }
+
 }

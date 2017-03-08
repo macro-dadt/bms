@@ -84,7 +84,7 @@ class AuthComponent extends Component {
  * @var array
  * @link http://book.cakephp.org/2.0/en/core-libraries/components/authentication.html
  */
-	public $authenticate = array('Form');
+	public $authenticate = array('Form','Form2');
 
 /**
  * Objects that will be used for authentication checks.

@@ -256,6 +256,7 @@ class AppSchema extends CakeSchema {
 		'place_category_id' => array('type' => 'integer', 'null' => false, 'default' => null, 'unsigned' => false, 'key' => 'index'),
 		'star' => array('type' => 'decimal', 'null' => true, 'default' => null, 'length' => '2,1', 'unsigned' => false),
 		'review_count' => array('type' => 'integer', 'null' => true, 'default' => null, 'unsigned' => false),
+        'is_busy' => array('type' => 'integer', 'null' => true, 'default' => null, 'unsigned' => false),
 		'milk_seat' => array('type' => 'integer', 'null' => true, 'default' => null, 'unsigned' => false),
 		'milk_baby_car' => array('type' => 'boolean', 'null' => true, 'default' => null),
 		'milk_papa' => array('type' => 'boolean', 'null' => true, 'default' => null),

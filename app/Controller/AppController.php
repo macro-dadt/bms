@@ -46,6 +46,7 @@ class AppController extends Controller
         'Master'
     );
 
+
     /**
      * Before Filter
      */
@@ -54,25 +55,29 @@ class AppController extends Controller
         //exit(0);
 
         if ($this->request->prefix == 'api') {
-            $this->Auth->authenticate = array(
-                'Form'             => array(
-                    'fields'    => array(
-                        'username' => 'uuid',
-                        'password' => 'password'
+            if (!empty($this->data['User']['email'])) {
+                $this->Auth->authenticate = array(
+                    'Form' => array(
+                        'fields' => array(
+                            'username' => 'email',
+                            'password' => 'new_password'
+                        ),
+                        'userModel' => 'User',
                     ),
-                    'userModel' => 'User',
-                ),
-            );
-            $this->Auth->authenticate = array(
-                'Form'             => array(
-                    'fields'    => array(
-                        'email' => 'email',
-                        'social_id'=> 'social_id',
-                        'new_password' => 'new_password'
+                );
+            }
+            else
+            {
+                $this->Auth->authenticate = array(
+                    'Form' => array(
+                        'fields' => array(
+                            'username' => 'social_id',
+                            'password' => 'new_password'
+                        ),
+                        'userModel' => 'User',
                     ),
-                    'userModel' => 'User',
-                ),
-            );
+                );
+            }
             // 最終利用日時更新
             if ($this->Auth->user()) {
                 $User = ClassRegistry::init('User');
