@@ -14,7 +14,7 @@ class UsersController extends AppController
     public function beforeFilter()
     {
         parent::beforeFilter();
-        $this->Auth->allow('api_generate','api_new_generate','api_recovery_password','api_recovery_code_true','api_registered','api_new_password_true');
+        $this->Auth->allow('api_generate','api_new_generate','api_change_password','api_recovery_password','api_recovery_code_true','api_registered','api_new_password_true');
     }
 
 
@@ -348,7 +348,8 @@ class UsersController extends AppController
     }
     public function api_change_password(){
         $new_password = $this->request->data('User.new_password');
-        if ($this->User->change_password($new_password)){
+        $email = $this->request->data('User.email');
+        if ($this->User->change_password($email,$new_password)){
             $this->set(array(
                 'result'     => 'success',
                 '_serialize' => array('result')

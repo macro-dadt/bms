@@ -633,7 +633,6 @@ class User extends AppModel
      */
     public function deviceChangeRequest($userId, $email)
     {
-
         $data = array(
             'User' => array(
                 'id' => $userId,
@@ -653,14 +652,10 @@ class User extends AppModel
 
     public function recoverPasswordRequest($email)
     {
-        $data = array(
-            'User' => array(
-                'recovery_code'=> $this->generateRandomString()
-            )
-        );
-
-        if($this->save($data)) {
-            return $this->findByEmail($email);
+        $user = $this->findByEmail($email);
+        $user['User']['recovery_code'] =  $this->generateRandomString();
+        if($this->save($user)) {
+            return $user;
         } else {
             return false;
         }
@@ -674,14 +669,11 @@ class User extends AppModel
         }
         return $randomString;
     }
-    function change_password($new_password){
-        $data = array(
-            'User' => array(
-                'new_password'=> $new_password
-            )
-        );
+    function change_password($email,$new_password){
+        $user = $this->findByEmail($email);
+        $user['User']['new_password'] =  $new_password;
 
-        if($this->save($data, array(
+        if($this->save($user, array(
             '_validate' => 'change_password'
         ))) {
             return true;
