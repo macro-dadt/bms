@@ -39,7 +39,38 @@ class PlacesController extends AppController
             ));
         }
     }
-
+    public function api_search_nursing_room()
+    {
+        $lat = $this->request->query('lat'); // 緯度
+        $lon = $this->request->query('lon'); // 経度
+        $places = $this->Place->search_nursing_room($lat, $lon);
+        if ($places === false) {
+            $this->set(array(
+                'error'      => '緯度・経度の指定が正しくありません',
+                '_serialize' => array('error')
+            ));
+        } else {
+            $this->set(array(
+                'places'     => $places,
+                '_serialize' => array('places')
+            ));
+        }
+    }
+    public function api_get_all_spot()
+    {
+        $places = $this->Place->getAllSpot();
+        if ($places === false) {
+            $this->set(array(
+                'error'      => '緯度・経度の指定が正しくありません',
+                '_serialize' => array('error')
+            ));
+        } else {
+            $this->set(array(
+                'places'     => $places,
+                '_serialize' => array('places')
+            ));
+        }
+    }
     /**
      * 施設新規投稿
      */
@@ -57,12 +88,12 @@ class PlacesController extends AppController
             ));
         }
     }
-    // add nursing room, just for admin
+    // add nursing room, just for admin, return babymap_place_id
     public function api_add_nursing_room()
     {
         if ($this->Place->add_nursing($this->request->data)) {
             $this->set(array(
-                'place_id'   => $this->Place->getLastInsertId(),
+                'babymap_place_id'   => $this->Place->getLastInsertId(),
                 '_serialize' => array('result')
             ));
         } else {
@@ -232,15 +263,15 @@ class PlacesController extends AppController
 
     ///new api
 
-    public function api_busy()
+    public function api_set_busy()
     {
         // 対象の施設ID
-        $place_id = $this->request->data('place_id');
+        $place_id = $this->request->query('id');
         // フラグの状態
-        $is_busy =   $this->request->data('is_busy');
+        $is_busy =   $this->request->query('is_busy');
 
         // フラグ変更
-        $result = $this->Place->set($place_id, $is_busy);
+        $result = $this->Place->setBusy($place_id, $is_busy);
 
         if ($result) {
             $this->set(array(

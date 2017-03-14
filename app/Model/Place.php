@@ -250,7 +250,7 @@ class Place extends AppModel
             return false;
         }
         // 検索範囲
-        $range = 0.05;
+        $range = 0.01;
         $result = $this->find('all', array(
             'fields'     => array(
                 $this->alias . '.id',
@@ -323,6 +323,7 @@ class Place extends AppModel
                         $this->alias . '.closed = "0000-00-00 00:00:00"'
                     )
                 )
+
             ),
             'order'      => array(
                 "Glength(GeomFromText(Concat('LineString(',
@@ -348,7 +349,186 @@ class Place extends AppModel
 
         return $result;
     }
+    //check busy for nursing room
+    public function search_nursing_room($lat, $lon)
+    {
+        $result = $this->find('all', array(
+            'fields'     => array(
+                $this->alias . '.id',
+                $this->alias . '.name',
+                $this->alias . '.floor',
+                $this->alias . '.address',
+                $this->alias . '.tel',
+                $this->alias . '.url',
+                $this->alias . '.usable_week_day',
+                $this->alias . '.usable_time',
+                $this->alias . '.lat',
+                $this->alias . '.lon',
+                $this->alias . '.place_category_id',
+                $this->alias . '.star',
+                $this->alias . '.review_count',
+                $this->alias . '.milk_seat',
+                $this->alias . '.milk_baby_car',
+                $this->alias . '.milk_hot_water',
+                $this->alias . '.milk_papa',
+                $this->alias . '.milk_private_room',
+                $this->alias . '.nappy_seat',
+                $this->alias . '.nappy_dust_box',
+                $this->alias . '.nappy_dust_bag',
+                $this->alias . '.nappy_papa',
+                $this->alias . '.toilet_seat',
+                $this->alias . '.toilet_boy',
+                $this->alias . '.toilet_girl',
+                $this->alias . '.cond_child_chair',
+                $this->alias . '.cond_baby_chair',
+                $this->alias . '.cond_baby_car',
+                $this->alias . '.cond_no_smoke',
+                $this->alias . '.cond_store',
+                $this->alias . '.cond_parking',
+                $this->alias . '.cond_tatami',
+                $this->alias . '.cond_indoor',
+                $this->alias . '.cond_outdoor',
+                $this->alias . '.cond_one_year_old_over',
+                $this->alias . '.cond_one_year_old_under',
+                $this->alias . '.cond_day_care',
+                $this->alias . '.cond_kids_space',
+                $this->alias . '.is_official',
+                $this->alias . '.is_closed',
+                $this->alias . '.created',
+                $this->alias . '.modified',
+                $this->alias . '.is_busy',
 
+            ),
+            'conditions' => array(
+                $this->alias . '.is_closed' => 0,
+                $this->alias . '.place_category_id' => 9,
+                'or' => array(
+                    // 公開日時
+                    array(
+                        $this->alias . '.opened IS NULL',
+                        $this->alias . '.closed IS NULL'
+                    ),
+                    array(
+                        $this->alias . '.opened <=' => date('Y-m-d H:i:s'),
+                        $this->alias . '.closed >=' => date('Y-m-d H:i:s'),
+                    ),
+                    // 公開開始日、終了日がなくてもヒットさせる
+                    array(
+                        $this->alias . '.opened = "0000-00-00 00:00:00"',
+                        $this->alias . '.closed = "0000-00-00 00:00:00"'
+                    )
+                )
+
+            ),
+            'order'      => array(
+                "Glength(GeomFromText(Concat('LineString(',
+                    {$lon}  , ' ',
+                    {$lat}  , ',',
+                    X(`latlon`)  , ' ',
+                    Y(`latlon`)  , ')'
+                )))"
+            ),
+            'contain'    => array(
+                'Review' => array('ReviewImage')
+            )
+        ));
+        foreach ($result as &$t) {
+            $image = Hash::extract($t, 'Review.{n}.ReviewImage.0.url');
+            if ($image) {
+                $t['Place']['image_url'] = $image[0];
+            } else {
+                $t['Place']['image_url'] = '';
+            }
+            unset($t['Review']);
+        }
+
+        return $result;
+    }
+//get all spot for offline version
+    public function getAllSpot()
+    {
+        $result = $this->find('all', array(
+            'fields'     => array(
+                $this->alias . '.id',
+                $this->alias . '.name',
+                $this->alias . '.floor',
+                $this->alias . '.address',
+                $this->alias . '.tel',
+                $this->alias . '.url',
+                $this->alias . '.usable_week_day',
+                $this->alias . '.usable_time',
+                $this->alias . '.lat',
+                $this->alias . '.lon',
+                $this->alias . '.place_category_id',
+                $this->alias . '.star',
+                $this->alias . '.review_count',
+                $this->alias . '.milk_seat',
+                $this->alias . '.milk_baby_car',
+                $this->alias . '.milk_hot_water',
+                $this->alias . '.milk_papa',
+                $this->alias . '.milk_private_room',
+                $this->alias . '.nappy_seat',
+                $this->alias . '.nappy_dust_box',
+                $this->alias . '.nappy_dust_bag',
+                $this->alias . '.nappy_papa',
+                $this->alias . '.toilet_seat',
+                $this->alias . '.toilet_boy',
+                $this->alias . '.toilet_girl',
+                $this->alias . '.cond_child_chair',
+                $this->alias . '.cond_baby_chair',
+                $this->alias . '.cond_baby_car',
+                $this->alias . '.cond_no_smoke',
+                $this->alias . '.cond_store',
+                $this->alias . '.cond_parking',
+                $this->alias . '.cond_tatami',
+                $this->alias . '.cond_indoor',
+                $this->alias . '.cond_outdoor',
+                $this->alias . '.cond_one_year_old_over',
+                $this->alias . '.cond_one_year_old_under',
+                $this->alias . '.cond_day_care',
+                $this->alias . '.cond_kids_space',
+                $this->alias . '.is_official',
+                $this->alias . '.is_closed',
+                $this->alias . '.created',
+                $this->alias . '.modified',
+                $this->alias . '.is_busy',
+
+            ),
+            'conditions' => array(
+                $this->alias . '.is_closed' => 0,
+                'or' => array(
+                    // 公開日時
+                    array(
+                        $this->alias . '.opened IS NULL',
+                        $this->alias . '.closed IS NULL'
+                    ),
+                    array(
+                        $this->alias . '.opened <=' => date('Y-m-d H:i:s'),
+                        $this->alias . '.closed >=' => date('Y-m-d H:i:s'),
+                    ),
+                    // 公開開始日、終了日がなくてもヒットさせる
+                    array(
+                        $this->alias . '.opened = "0000-00-00 00:00:00"',
+                        $this->alias . '.closed = "0000-00-00 00:00:00"'
+                    )
+                )
+            ),
+            'contain'    => array(
+                'Review' => array('ReviewImage')
+            )
+        ));
+        foreach ($result as &$t) {
+            $image = Hash::extract($t, 'Review.{n}.ReviewImage.0.url');
+            if ($image) {
+                $t['Place']['image_url'] = $image[0];
+            } else {
+                $t['Place']['image_url'] = '';
+            }
+            unset($t['Review']);
+        }
+
+        return $result;
+    }
     /**
      * 施設新規投稿
      *
@@ -477,7 +657,7 @@ class Place extends AppModel
         if (!isset($data['ReviewImage'])) {
             $data['ReviewImage'] = array();
         }
-        $data[$this->alias]['place_category_id'] = 6;
+        $data[$this->alias]['place_category_id'] = 9;
         $data[$this->alias]['milk_seat'] = 1;
         $data[$this->alias]['floor'] = 0;
         $data[$this->alias]['user_id'] = 0;
@@ -846,6 +1026,7 @@ class Place extends AppModel
                 $this->alias . '.cond_kids_space',
                 $this->alias . '.is_official',
                 $this->alias . '.is_closed',
+                $this->alias . '.is_busy',
                 $this->alias . '.created',
                 $this->alias . '.modified',
                 $this->alias . '.remarks',
@@ -913,7 +1094,6 @@ class Place extends AppModel
 
         return $result;
     }
-
 
     /**
      * 施設詳細情報を取得
