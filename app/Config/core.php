@@ -37,7 +37,7 @@
 if (getenv('CAKEPHP_DEBUG')) {
 	Configure::write('debug', getenv('CAKEPHP_DEBUG'));
 } else {
-	Configure::write('debug', 2);
+	Configure::write('debug', 0);
 }
 /**
  * Configure the Error handler used to handle errors for your application. By default
@@ -229,12 +229,12 @@ if (getenv('CAKEPHP_DEBUG')) {
 /**
  * A random string used in security hashing methods.
  */
-	Configure::write('Security.salt', '');
+	Configure::write('Security.salt', 'DYhG93aaqyJfIxfs2guVoUubWwvniR2G0FgaC9mi');
 
 /**
  * A random numeric string (digits only) used to encrypt/decrypt strings.
  */
-	Configure::write('Security.cipherSeed', '');
+	Configure::write('Security.cipherSeed', '76800009657453542496749683645');
 
 /**
  * Apply timestamps with the last modified time to static assets (js, css, images).
