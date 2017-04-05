@@ -744,6 +744,9 @@ class Place extends AppModel
                 'cond_day_care',
                 'cond_kids_space',
                 'floor',
+                'latlon',
+                'lat',
+                'lon',
             ),
         );
         if (!isset($data['Review'])) {
@@ -938,7 +941,6 @@ class Place extends AppModel
 
         return false;
     }
-
     /**
      * 登録画像取得
      *
@@ -1234,6 +1236,21 @@ class Place extends AppModel
             $this->alias => array(
                 'id' => $placeId,
                 'is_busy' => $isBusy
+            )
+        );
+        return $this->save($data, array(
+            'validate' => false,
+            'callbacks' => false
+        ));
+    }
+    public function updateNursingRoom($place_id, $name, $lat, $lon) {
+
+        $data = array(
+            $this->alias => array(
+                'id' => $place_id,
+                'name' => $name,
+                'lat' => $lat,
+                'lon' => $lon
             )
         );
         return $this->save($data, array(

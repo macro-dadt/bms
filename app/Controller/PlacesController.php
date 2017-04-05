@@ -9,7 +9,7 @@ class PlacesController extends AppController
 {
     public function beforeFilter()
     {
-        $this->Auth->allow('api_add_nursing_room');
+        $this->Auth->allow('api_add_nursing_room','api_set_busy','api_edit_data','api_update_nursing_room');
     }
 
     /**
@@ -128,25 +128,8 @@ class PlacesController extends AppController
         }
     }
 
-    /**
-     * 施設変更
-     *
-     * @param null $id
-     */
-    public function api_edit($id = null)
-    {
-        if ($this->Place->edit($this->Auth->user('id'), $id, $this->request->data)) {
-            $this->set(array(
-                'result'     => 'success',
-                '_serialize' => array('result')
-            ));
-        } else {
-            $this->set(array(
-                'errors'     => array_merge($this->Place->validationErrors),
-                '_serialize' => array('errors')
-            ));
-        }
-    }
+
+
 
     /**
      * 施設の画像一覧
@@ -285,5 +268,49 @@ class PlacesController extends AppController
             ));
         }
 
+    }
+
+    /**
+     * 施設変更
+     *
+     * @param null $id
+     */
+    public function api_edit($id = null)
+    {
+        if ($this->Place->edit($this->Auth->user('id'), $id, $this->request->data)) {
+            $this->set(array(
+                'result'     => 'success',
+                '_serialize' => array('result')
+            ));
+        } else {
+            $this->set(array(
+                'errors'     => array_merge($this->Place->validationErrors),
+                '_serialize' => array('errors')
+            ));
+        }
+    }
+    public function api_update_nursing_room()
+    {
+        // 対象の施設ID
+        $place_id = $this->request->data('Place.id');
+        // フラグの状態
+        $name =   $this->request->data('Place.name');
+        $lat =   $this->request->data('Place.lat');
+        $lon =   $this->request->data('Place.lon');
+
+        // フラグ変更
+        $result = $this->Place->updateNursingRoom($place_id, $name, $lat, $lon);
+
+        if ($result) {
+            $this->set(array(
+                'result'     => 'success',
+                '_serialize' => array('result')
+            ));
+        } else {
+            $this->set(array(
+                'error'      => '変更出来ませんでした',
+                '_serialize' => array('error')
+            ));
+        }
     }
 }
