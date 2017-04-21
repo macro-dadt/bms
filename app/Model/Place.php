@@ -145,6 +145,41 @@ class Place extends AppModel
                 ),
             ),
         ),
+        'place_add_nursing_room'  => array(
+            'name'              => array(
+                'required'  => array(
+                    'rule'     => 'notBlank',
+                    'message'  => '未指定です',
+                    'required' => true
+                ),
+                'maxLength' => array(
+                    'rule'    => array('maxLength', 255),
+                    'message' => '%s字以内で入力してください'
+                ),
+            ),
+            'lat'               => array(
+                'required' => array(
+                    'rule'     => 'notBlank',
+                    'message'  => '未指定です',
+                    'required' => true
+                ),
+                'lat'      => array(
+                    'rule'    => array('custom', '/^-?([0-8]?[0-9]|90)\.[0-9]{1,6}$/'),
+                    'message' => '書式が正しくありません',
+                ),
+            ),
+            'lon'               => array(
+                'required' => array(
+                    'rule'     => 'notBlank',
+                    'message'  => '未指定です',
+                    'required' => true
+                ),
+                'lon'      => array(
+                    'rule'    => array('custom', '/^-?((1?[0-7]?|[0-9]?)[0-9]|180)\.[0-9]{1,6}$/'),
+                    'message' => '書式が正しくありません',
+                ),
+            ),
+        ),
         'place_edit' => array(
             'name'              => array(
                 'required'  => array(
@@ -201,7 +236,7 @@ class Place extends AppModel
     public function beforeValidate($options = array())
     {
         // 追加時
-        if (isset($options['_validate']) && in_array($options['_validate'], array('place_add', 'place_edit'))) {
+        if (isset($options['_validate']) && in_array($options['_validate'], array('place_add','place_add_nursing_room', 'place_edit'))) {
             // おむつ、ミルク、トイレの席数はいずれかが必須
             if (empty($this->data[$this->alias]['nappy_seat']) &&
                 empty($this->data[$this->alias]['milk_seat']) &&
@@ -611,7 +646,6 @@ class Place extends AppModel
         return false;
     }
 
-    //add nursing room just for admin
     public function add_nursing($data)
     {
         $fieldList = array(
@@ -653,15 +687,15 @@ class Place extends AppModel
         if (!isset($data['Review'])) {
             $data['Review'] = array();
         }
-
         if (!isset($data['ReviewImage'])) {
             $data['ReviewImage'] = array();
         }
+
         $data[$this->alias]['place_category_id'] = 9;
         $data[$this->alias]['milk_seat'] = 1;
         $data[$this->alias]['floor'] = 0;
-        $data[$this->alias]['user_id'] = 0;
-        $data['Review']['user_id'] = 0;
+        $data[$this->alias]['user_id'] = 1;
+        $data['Review']['user_id'] = 1;
         $this->set($data[$this->alias]);
         // トランザクション不可なのでぞれぞれバリデートを行う
         if ($this->validates(array('_validate' => 'place_add', 'fieldList' => $fieldList))) {
@@ -688,6 +722,7 @@ class Place extends AppModel
 
         return false;
     }
+
 
     /**
      * @return array
@@ -804,6 +839,61 @@ class Place extends AppModel
                 #todo ポイント追加
                 return true;
             }
+        }
+
+        return false;
+    }
+
+    public function updateNursingRoom($id,$data) {
+        if (!$edit = $this->editNursingRoom($id)) {
+            $this->invalidate('id', '変更先が見つかりませんでした');
+            return false;
+        }
+
+        $fieldList = array(
+            $this->alias => array(
+                'user_id',
+                'place_category_id',
+                'name',
+                'milk_seat',
+                'milk_baby_car',
+                'milk_papa',
+                'milk_hot_water',
+                'milk_private_room',
+                'nappy_seat',
+                'nappy_dust_box',
+                'nappy_dust_bag',
+                'nappy_papa',
+                'toilet_seat',
+                'toilet_boy',
+                'toilet_girl',
+                'cond_child_chair',
+                'cond_baby_chair',
+                'cond_baby_car',
+                'cond_no_smoke',
+                'cond_store',
+                'cond_parking',
+                'cond_tatami',
+                'cond_indoor',
+                'cond_outdoor',
+                'cond_one_year_old_over',
+                'cond_one_year_old_under',
+                'cond_day_care',
+                'cond_kids_space',
+                'floor',
+                'latlon',
+                'lat',
+                'lon',
+            ),
+        );
+
+        $data[$this->alias]['id'] = $id;
+        $data[$this->alias]['user_id'] = 1;
+
+        $this->set($data[$this->alias]);
+        // トランザクション不可なのでぞれぞれバリデートを行う
+        if ($this->save()) {
+            return true;
         }
 
         return false;
@@ -941,6 +1031,56 @@ class Place extends AppModel
 
         return false;
     }
+    public function editNursingRoom($id)
+    {
+        $data = $this->find('first', array(
+            'fields'     => array(
+                $this->alias . '.id',
+                $this->alias . '.name',
+                $this->alias . '.place_category_id',
+                $this->alias . '.star',
+                $this->alias . '.review_count',
+                $this->alias . '.milk_seat',
+                $this->alias . '.milk_baby_car',
+                $this->alias . '.milk_papa',
+                $this->alias . '.milk_hot_water',
+                $this->alias . '.milk_private_room',
+                $this->alias . '.nappy_seat',
+                $this->alias . '.nappy_dust_box',
+                $this->alias . '.nappy_dust_bag',
+                $this->alias . '.nappy_papa',
+                $this->alias . '.toilet_seat',
+                $this->alias . '.toilet_boy',
+                $this->alias . '.toilet_girl',
+                $this->alias . '.cond_child_chair',
+                $this->alias . '.cond_baby_chair',
+                $this->alias . '.cond_baby_car',
+                $this->alias . '.cond_no_smoke',
+                $this->alias . '.cond_store',
+                $this->alias . '.cond_parking',
+                $this->alias . '.cond_tatami',
+                $this->alias . '.cond_indoor',
+                $this->alias . '.cond_outdoor',
+                $this->alias . '.cond_one_year_old_over',
+                $this->alias . '.cond_one_year_old_under',
+                $this->alias . '.cond_day_care',
+                $this->alias . '.cond_kids_space',
+                $this->alias . '.lat',
+                $this->alias . '.lon',
+                $this->alias . '.latlon',
+            ),
+            'conditions' => array(
+                $this->alias . '.id'      => $id,
+            )
+        ));
+        if ($data) {
+            $result = $data;
+            return $result;
+        }
+
+        return false;
+    }
+
     /**
      * 登録画像取得
      *
@@ -1236,21 +1376,6 @@ class Place extends AppModel
             $this->alias => array(
                 'id' => $placeId,
                 'is_busy' => $isBusy
-            )
-        );
-        return $this->save($data, array(
-            'validate' => false,
-            'callbacks' => false
-        ));
-    }
-    public function updateNursingRoom($place_id, $name, $lat, $lon) {
-
-        $data = array(
-            $this->alias => array(
-                'id' => $place_id,
-                'name' => $name,
-                'lat' => $lat,
-                'lon' => $lon
             )
         );
         return $this->save($data, array(

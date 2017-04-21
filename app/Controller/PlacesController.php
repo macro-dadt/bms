@@ -9,7 +9,7 @@ class PlacesController extends AppController
 {
     public function beforeFilter()
     {
-        $this->Auth->allow('api_add_nursing_room','api_set_busy','api_edit_data','api_update_nursing_room');
+        $this->Auth->allow('api_add_nursing_room','api_set_busy','api_edit_data','api_update_nursing_room','api_add');
     }
 
     /**
@@ -88,12 +88,13 @@ class PlacesController extends AppController
             ));
         }
     }
+
     // add nursing room, just for admin, return babymap_place_id
     public function api_add_nursing_room()
     {
         if ($this->Place->add_nursing($this->request->data)) {
             $this->set(array(
-                'babymap_place_id'   => $this->Place->getLastInsertId(),
+                'result'   => $this->Place->getLastInsertId(),
                 '_serialize' => array('result')
             ));
         } else {
@@ -289,27 +290,17 @@ class PlacesController extends AppController
             ));
         }
     }
-    public function api_update_nursing_room()
+    public function api_update_nursing_room($id = null)
     {
-        // 対象の施設ID
-        $place_id = $this->request->data('Place.id');
-        // フラグの状態
-        $name =   $this->request->data('Place.name');
-        $lat =   $this->request->data('Place.lat');
-        $lon =   $this->request->data('Place.lon');
-
-        // フラグ変更
-        $result = $this->Place->updateNursingRoom($place_id, $name, $lat, $lon);
-
-        if ($result) {
+        if ($this->Place->updateNursingRoom($id,$this->request->data)) {
             $this->set(array(
                 'result'     => 'success',
                 '_serialize' => array('result')
             ));
         } else {
             $this->set(array(
-                'error'      => '変更出来ませんでした',
-                '_serialize' => array('error')
+                'errors'     => array_merge($this->Place->validationErrors),
+                '_serialize' => array('errors')
             ));
         }
     }
