@@ -264,6 +264,30 @@ class User extends AppModel
                     'allowEmpty' => true
                 ),
             ),
+        ),
+        'send_token' => array(
+            'id'    => array(
+                    'required' => array(
+                        'rule'     => 'notBlank',
+                        'message'  => '未指定です',
+                        'required' => true
+                    ),
+                    'isUnique' => array(
+                        'rule'    => 'isUnique',
+                        'message' => '登録されています',
+                    ),
+            ),
+            'token'    => array(
+                'required' => array(
+                    'rule'     => 'notBlank',
+                    'message'  => '未指定です',
+                    'required' => true
+                ),
+                'isUnique' => array(
+                    'rule'    => 'isUnique',
+                    'message' => '登録されています',
+                ),
+            ),
         )
     );
 
@@ -669,6 +693,26 @@ class User extends AppModel
         }
         return $randomString;
     }
+    function getAllToken(){
+        $resultArr = $this->find('all', array(
+            'fields' => array(
+                $this->alias . '.token',
+            ),
+            'conditions' =>array('not' => array(
+                $this->alias . '.token'  => null
+            )),
+        )
+        );
+        $tokenArr = array();
+        foreach ($resultArr as $result) {
+            $tokenArr[] = $result['User']['token'];
+        }
+        return $tokenArr;
+    }
+    function getToken($userId){
+        $user = $this->findById($userId);
+        return $user['User']['token'];
+    }
     function change_password($email,$new_password){
         $user = $this->findByEmail($email);
         $user['User']['new_password'] =  $new_password;
@@ -680,6 +724,118 @@ class User extends AppModel
         } else {
             return false;
         }
+    }
+    function send_token($userId,$token){
+        $user = $this->findById($userId);
+        $user['User']['token'] =  $token;
+        if($this->save($user, array(
+            '_validate' => 'send_token'
+        ))) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    function sendPushMessage($tToken,$tAlert) {
+        // Provide the Host Information.
+
+        $tHost = 'gateway.sandbox.push.apple.com';
+
+        $tPort = 2195;
+
+        // Provide the Certificate and Key Data.
+
+
+        $tCert = '/var/www/html/babymap-api/app/Model/Babymap_Push.pem';
+        $tCa = '/var/www/html/babymap-api/app/Model/entrust_2048_ca.cer';
+
+        // Provide the Private Key Passphrase (alternatively you can keep this secrete
+
+        // and enter the key manually on the terminal -> remove relevant line from code).
+
+        // Replace XXXXX with your Passphrase
+
+        $tPassphrase = '163182776';
+
+        // Provide the Device Identifier (Ensure that the Identifier does not have spaces in it).
+
+        // Replace this token with the token of the iOS device that is to receive the notification.
+
+        // The message that is to appear on the dialog.
+
+        // The Badge Number for the Application Icon (integer >=0).
+
+        $tBadge = 8;
+
+        // Audible Notification Option.
+
+        $tSound = 'default';
+
+        // The content that is returned by BabyMapApp "pushNotificationReceived" message.
+
+        $tPayload = 'APNS Message Handled by BabyMapApp';
+
+        // Create the message content that is to be sent to the device.
+
+        $tBody['aps'] = array (
+
+            'alert' => $tAlert,
+
+            'badge' => $tBadge,
+
+            'sound' => $tSound,
+
+        );
+
+        $tBody ['payload'] = $tPayload;
+
+        // Encode the body to JSON.
+
+        $tBody = json_encode ($tBody);
+
+        // Create the Socket Stream.
+
+        $tContext = stream_context_create ();
+//        $tContext = stream_context_create([ 'ssl' => [
+//            'verify_peer'       => false,
+//            'verify_peer_name'  => false,]]);
+        stream_context_set_option ($tContext, 'ssl', 'local_cert', $tCert);
+
+        // Remove this line if you would like to enter the Private Key Passphrase manually.
+
+        stream_context_set_option ($tContext, 'ssl', 'passphrase', $tPassphrase);
+        stream_context_set_option($tContext, 'ssl', 'cafile',$tCa);
+
+        // Open the Connection to the APNS Server.
+
+        $tSocket = stream_socket_client ('ssl://'.$tHost.':'.$tPort, $error, $errstr,30, STREAM_CLIENT_CONNECT|STREAM_CLIENT_PERSISTENT, $tContext);
+
+        // Check if we were able to open a socket.
+
+        if (!$tSocket)
+
+            exit ("APNS Connection Failed: $error $errstr" . PHP_EOL);
+
+        // Build the Binary Notification.
+
+        $tMsg = chr (0) . chr (0) . chr (32) . pack ('H*', $tToken) . pack ('n', strlen ($tBody)) . $tBody;
+
+        // Send the Notification to the Server.
+
+        $tResult = fwrite ($tSocket, $tMsg, strlen ($tMsg));
+
+        if ($tResult)
+
+            echo 'Delivered Message to APNS' . PHP_EOL;
+
+        else
+
+            echo 'Could not Deliver Message to APNS' . PHP_EOL;
+
+        // Close the Connection to the Server.
+
+        fclose ($tSocket);
+
     }
 
     /**

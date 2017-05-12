@@ -1,5 +1,5 @@
 <?php
-
+//App::uses('APNSComponent', 'Controller/Component');
 /**
  * UsersController
  *
@@ -14,7 +14,7 @@ class UsersController extends AppController
     public function beforeFilter()
     {
         parent::beforeFilter();
-        $this->Auth->allow('api_generate','api_new_generate','api_change_password','api_recovery_password','api_recovery_code_true','api_registered','api_new_password_true');
+        $this->Auth->allow('api_send_notification_to_all','api_send_notification_to_one','api_generate','api_new_generate','api_change_password','api_recovery_password','api_recovery_code_true','api_registered','api_new_password_true');
     }
 
 
@@ -37,6 +37,7 @@ class UsersController extends AppController
      */
     public function api_generate()
     {
+
         if ($this->User->generate($this->request->data('User.uuid'), $this->request->data('User.password'))) {
             // 登録が完了したらログインする
             $this->setAction('api_login');
@@ -362,6 +363,22 @@ class UsersController extends AppController
             ));
         }
     }
+    public function api_send_token(){
+        $id = $this->request->data('User.id');
+        $token = $this->request->data('User.token');
+        if ($this->User->send_token($id,$token)){
+            $this->set(array(
+                'result'     => 'success',
+                '_serialize' => array('result')
+            ));
+        }
+        else {
+            $this->set(array(
+                'errors'     => 'cannot send a token',
+                '_serialize' => array('errors')
+            ));
+        }
+    }
 
     /**
      * ユーザ情報取得
@@ -552,4 +569,29 @@ class UsersController extends AppController
             ));
         }
     }
+    public function api_send_notification_to_one()
+    {
+        $userId = $this->request->query('id');
+        $message = $this->request->query('message');
+        $token = $this->User->getToken($userId);
+        if ($this->User->sendPushMessage($token,$message)){
+            $this->set('result', 'success');
+            $this->set('_serialize', array('result'));
+        }
+    }
+    public function api_send_notification_to_all()
+    {
+        //$message = $this->request->query('message');
+        $tokenArr = $this->User->getAllToken();
+        $this->set('result', $tokenArr);
+//        foreach ($tokenArr as $token) {
+//           if ($this->User->sendPushMessage($token,$message)){
+//               $this->set('result', 'success');
+//               $this->set('_serialize', array('result'));
+//           }
+//        }
+
+
+    }
+
 }

@@ -56,6 +56,24 @@ class PlaceQuestionsController extends AppController
         }
 
     }
+    public function api_view()
+    {
+        $place_question_id = $this->request->query('place_question_id');
+        $result = $this->PlaceQuestion->view($place_question_id);
+
+        if ($result) {
+            $this->set(array(
+                'result'     => $result,
+                '_serialize' => array('result')
+            ));
+        } else {
+            $this->set(array(
+                'errors'     => '取得できませんでした',
+                '_serialize' => array('errors')
+            ));
+        }
+    }
+
 
 
 }

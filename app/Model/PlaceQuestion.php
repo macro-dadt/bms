@@ -130,4 +130,23 @@ class PlaceQuestion extends AppModel {
         return $data;
 	}
 
+    public function view($place_question_id)
+    {
+        $data = $this->find('all', array(
+            'fields' => array(
+                $this->alias . '.id',
+                $this->alias . '.user_id',
+                $this->alias . '.message',
+                $this->alias . '.place_id',
+                $this->alias . '.modified',
+                $this->alias . '.is_closed',
+            ),
+            'conditions' => array(
+                $this->alias . '.id' => $place_question_id,
+            )
+        ));
+
+        return $data;
+
+    }
 }
