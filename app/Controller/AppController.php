@@ -55,23 +55,24 @@ class AppController extends Controller
         //exit(0);
 
         if ($this->request->prefix == 'api') {
-            if (!empty($this->data['User']['email'])) {
+            if (!empty($this->data['User']['social_id'])) {
                 $this->Auth->authenticate = array(
                     'Form' => array(
                         'fields' => array(
-                            'username' => 'email',
+                            'username' => 'social_id',
                             'password' => 'new_password'
                         ),
                         'userModel' => 'User',
                     ),
                 );
+
             }
             else
             {
                 $this->Auth->authenticate = array(
                     'Form' => array(
                         'fields' => array(
-                            'username' => 'social_id',
+                            'username' => 'email',
                             'password' => 'new_password'
                         ),
                         'userModel' => 'User',

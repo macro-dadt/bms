@@ -575,23 +575,19 @@ class UsersController extends AppController
         $message = $this->request->query('message');
         $token = $this->User->getToken($userId);
         if ($this->User->sendPushMessage($token,$message)){
-            $this->set('result', 'success');
-            $this->set('_serialize', array('result'));
+            $this->set(array(
+                'result'     => 'success',
+                '_serialize' => array('result')
+            ));
         }
     }
     public function api_send_notification_to_all()
     {
-        //$message = $this->request->query('message');
+        $message = $this->request->query('message');
         $tokenArr = $this->User->getAllToken();
-        $this->set('result', $tokenArr);
-//        foreach ($tokenArr as $token) {
-//           if ($this->User->sendPushMessage($token,$message)){
-//               $this->set('result', 'success');
-//               $this->set('_serialize', array('result'));
-//           }
-//        }
-
-
+        foreach ($tokenArr as $token) {
+            $this->User->sendPushMessage($token,$message);
+        }
     }
 
 }
