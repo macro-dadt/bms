@@ -376,6 +376,15 @@ class User extends AppModel
             'joined' => date('Y-m-d H:i:s')
         ), array('_validate' => 'saveNickname'));
     }
+    public function getPremium($day)
+    {
+        $date = date('Y-m-d H:i:s');
+        $day = "+"." ".$day." days";
+
+        return $this->save(array(
+            'expiration' =>  date('Y-m-d H:i:s', strtotime($date. $day))
+        ));
+    }
 
     /**
      * 変更

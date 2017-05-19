@@ -88,7 +88,19 @@ class UsersController extends AppController
             ));
         }
     }
-
+    public function api_getPremium(){
+        if ($this->User->getPremium($this->request->query('day'))) {
+            $this->set(array(
+                'result'     => "success",
+                '_serialize' => array('errors')
+            ));
+        } else {
+            $this->set(array(
+                'errors'     => $this->User->validationErrors,
+                '_serialize' => array('errors')
+            ));
+        }
+    }
     /**
      * ユーザー情報変更バリデードのみ
      * not use
