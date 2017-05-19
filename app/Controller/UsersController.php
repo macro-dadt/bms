@@ -92,7 +92,20 @@ class UsersController extends AppController
         if ($this->User->getPremium($this->request->query('day'))) {
             $this->set(array(
                 'result'     => "success",
+                '_serialize' => array('result')
+            ));
+        } else {
+            $this->set(array(
+                'errors'     => $this->User->validationErrors,
                 '_serialize' => array('errors')
+            ));
+        }
+    }
+    public function api_checkIsExpired(){
+        if ($this->User->checkIsExpired($this->request->query('id'))) {
+            $this->set(array(
+                'result'     => "success",
+                '_serialize' => array('result')
             ));
         } else {
             $this->set(array(

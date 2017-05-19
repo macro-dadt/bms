@@ -385,6 +385,16 @@ class User extends AppModel
             'expiration' =>  date('Y-m-d H:i:s', strtotime($date. $day))
         ));
     }
+    public function checkIsExpired($userId)
+    {
+        $data = $this->findById($userId);
+        if ($data['User']['expiration'] < date('Y-m-d H:i:s')){
+            return true;
+        }
+
+        // データ加工
+        return false;
+    }
 
     /**
      * 変更
