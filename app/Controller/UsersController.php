@@ -14,7 +14,7 @@ class UsersController extends AppController
     public function beforeFilter()
     {
         parent::beforeFilter();
-        $this->Auth->allow('api_send_notification_to_all','api_send_notification_to_one','api_generate','api_new_generate','api_change_password','api_recovery_password','api_recovery_code_true','api_registered','api_new_password_true');
+        $this->Auth->allow('api_login','api_send_notification_to_all_FCM','api_send_notification_to_one_FCM','api_send_notification_to_all','api_send_notification_to_one','api_generate','api_new_generate','api_change_password','api_recovery_password','api_recovery_code_true','api_registered','api_new_password_true');
     }
 
 
@@ -64,6 +64,7 @@ class UsersController extends AppController
     public function api_logout()
     {
         if($this->Auth->logout()) {
+            session_destroy ();
             $this->set('result', 'success');
             $this->set('_serialize', array('result'));
         } else {
@@ -103,6 +104,19 @@ class UsersController extends AppController
     }
     public function api_checkIsExpired(){
         if ($this->User->checkIsExpired($this->request->query('id'))) {
+            $this->set(array(
+                'result'     => "success",
+                '_serialize' => array('result')
+            ));
+        } else {
+            $this->set(array(
+                'errors'     => $this->User->validationErrors,
+                '_serialize' => array('errors')
+            ));
+        }
+    }
+    public function api_getPointBack(){
+        if ($this->User->getPointBack($this->request->query('id'),$this->request->query('point') )) {
             $this->set(array(
                 'result'     => "success",
                 '_serialize' => array('result')
@@ -598,8 +612,9 @@ class UsersController extends AppController
     {
         $userId = $this->request->query('id');
         $message = $this->request->query('message');
+        $data = $this->request->query('data');
         $token = $this->User->getToken($userId);
-        if ($this->User->sendPushMessage($token,$message)){
+        if ($this->User->sendPushMessage($token,$message,$data)){
             $this->set(array(
                 'result'     => 'success',
                 '_serialize' => array('result')
@@ -610,8 +625,40 @@ class UsersController extends AppController
     {
         $message = $this->request->query('message');
         $tokenArr = $this->User->getAllToken();
+        $data = $this->request->query('data');
+
         foreach ($tokenArr as $token) {
-            $this->User->sendPushMessage($token,$message);
+            $this->User->sendPushMessage($token,$message,$data);
+        }
+    }
+    public function api_send_notification_to_one_FCM()
+    {
+        $data = $this->request->data;
+        echo $data;
+        $message = $this->request->query('message');
+        $userId = $this->request->query('id');
+        $token = $this->User->getToken($userId);
+        $this->set(array(
+            'result'     => 'success',
+            '_serialize' => array('result')
+        ));
+        if ($this->User->sendFCMMessage($data,$token,$message)){
+            $this->set(array(
+                'result'     => 'success',
+                '_serialize' => array('result')
+            ));
+        }
+    }
+    public function api_send_notification_to_all_FCM()
+    {
+        $message = $this->request->query('message');
+        $tokenArr = $this->User->getAllToken();
+        $data = $this->request->data;
+        if ($this->User->sendFCMMessage($data,$tokenArr,$message)){
+            $this->set(array(
+                'result'     => 'success',
+                '_serialize' => array('result')
+            ));
         }
     }
 

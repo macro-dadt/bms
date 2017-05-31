@@ -281,7 +281,6 @@ class User extends AppModel
                 'required' => array(
                     'rule'     => 'notBlank',
                     'message'  => '未指定です',
-                    'required' => true
                 ),
                 'isUnique' => array(
                     'rule'    => 'isUnique',
@@ -667,6 +666,22 @@ class User extends AppModel
         return $result;
 
     }
+    public function getPointBack($userId, $point)
+    {
+        // データ取得
+        $data = $this->findById($userId);
+
+        // データ加工
+        $data['User']['point'] -= $point;
+
+        // データ保存
+        $result = $this->save(array(
+            'id' => $userId,
+            'point' => $data['User']['point']
+        ));
+        return $result;
+
+    }
 
 
     /**
@@ -755,7 +770,55 @@ class User extends AppModel
             return false;
         }
     }
-    function sendPushMessage($tToken,$tAlert) {
+    public function sendFCMMessage($data,$target,$message){
+        //$data in json form
+        /*
+Parameter Example
+	$data = array('post_id'=>'12345','post_title'=>'A Blog post');
+	$target = 'single tocken id or topic name';
+	or
+	$target = array('token1','token2','...'); // up to 1000 in one request
+*/
+        //http://sab99r.com/blog/firebase-cloud-messaging-fcm-php-backend/
+//FCM api URL
+        $url = 'https://fcm.googleapis.com/fcm/send';
+//api_key available in Firebase Console -> Project Settings -> CLOUD MESSAGING -> Server key
+        $server_key = 'AAAAtjvaTKk:APA91bGlBvkxM1ZKnPfEk643kTtsPuUuMAlZ0_bThbqvfpr7FpjSgIQ_QaiwayskmimSdhuin1vaYSCKTWDfLmgzgPzTy1xFt_CGazffOKGkVTb8rfqDmWzldopEQ3ImwD0YxkYrayat';
+
+        $fields = array();
+        $fields['data'] = $data;
+        $fields['notification'] = array(
+            'body'       => $message,
+            'title'    => 'Babymap',
+            'sound' => 'default',
+            'click_action' => $data['action']);
+        if(is_array($target)){
+            $fields['registration_ids'] = $target;
+        }else{
+            $fields['to'] = $target;
+        }
+//header with content_type api key
+        $headers = array(
+            'Content-Type:application/json',
+            'Authorization:key='.$server_key
+        );
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
+        $result = curl_exec($ch);
+        if ($result === FALSE) {
+            die('FCM Send Error: ' . curl_error($ch));
+        }
+        curl_close($ch);
+        return $result;
+    }
+    function sendPushMessage($tToken,$tAlert,$tPayload) {
         // Provide the Host Information.
 
         $tHost = 'gateway.sandbox.push.apple.com';
@@ -792,7 +855,7 @@ class User extends AppModel
 
         // The content that is returned by BabyMapApp "pushNotificationReceived" message.
 
-        $tPayload = 'APNS Message Handled by BabyMapApp';
+        //$tPayload = 'APNS Message Handled by BabyMapApp';
 
         // Create the message content that is to be sent to the device.
 
@@ -803,17 +866,11 @@ class User extends AppModel
             'badge' => $tBadge,
 
             'sound' => $tSound,
-
         );
-
         $tBody ['payload'] = $tPayload;
-
         // Encode the body to JSON.
-
         $tBody = json_encode ($tBody);
-
         // Create the Socket Stream.
-
         $tContext = stream_context_create ();
 //        $tContext = stream_context_create([ 'ssl' => [
 //            'verify_peer'       => false,

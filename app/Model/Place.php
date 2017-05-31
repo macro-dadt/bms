@@ -130,6 +130,13 @@ class Place extends AppModel
                     'allowEmpty' => true
                 ),
             ),
+            'mamaro'        => array(
+                'int' => array(
+                    'rule'       => array('custom', '/^\d+$/'),
+                    'message'    => '数字のみで入力してください',
+                    'allowEmpty' => true
+                ),
+            ),
             'milk_seat'         => array(
                 'int' => array(
                     'rule'       => array('custom', '/^\d+$/'),
@@ -240,11 +247,13 @@ class Place extends AppModel
             // おむつ、ミルク、トイレの席数はいずれかが必須
             if (empty($this->data[$this->alias]['nappy_seat']) &&
                 empty($this->data[$this->alias]['milk_seat']) &&
-                empty($this->data[$this->alias]['toilet_seat'])
+                empty($this->data[$this->alias]['toilet_seat']) &&
+                empty($this->data[$this->alias]['mamaro'])
             ) {
                 $this->invalidate('nappy_seat', '入力されていません');
                 $this->invalidate('milk_seat', '入力されていません');
                 $this->invalidate('toilet_seat', '入力されていません');
+                $this->invalidate('mamaro', '入力されていません');
             }
         }
 
@@ -301,6 +310,7 @@ class Place extends AppModel
                 $this->alias . '.place_category_id',
                 $this->alias . '.star',
                 $this->alias . '.review_count',
+                $this->alias . '.mamaro',
                 $this->alias . '.milk_seat',
                 $this->alias . '.milk_baby_car',
                 $this->alias . '.milk_hot_water',
@@ -585,6 +595,7 @@ class Place extends AppModel
                 'milk_hot_water',
                 'milk_private_room',
                 'nappy_seat',
+                'mammaro',
                 'nappy_dust_box',
                 'nappy_dust_bag',
                 'nappy_papa',
@@ -690,9 +701,8 @@ class Place extends AppModel
         if (!isset($data['ReviewImage'])) {
             $data['ReviewImage'] = array();
         }
-
-        $data[$this->alias]['place_category_id'] = 9;
         $data[$this->alias]['milk_seat'] = 1;
+        $data[$this->alias]['mamaro'] = 1;
         $data[$this->alias]['floor'] = 0;
         $data[$this->alias]['user_id'] = 1;
         $data['Review']['user_id'] = 1;
@@ -1147,6 +1157,7 @@ class Place extends AppModel
                 $this->alias . '.milk_papa',
                 $this->alias . '.milk_private_room',
                 $this->alias . '.nappy_seat',
+                $this->alias . '.mamaro',
                 $this->alias . '.nappy_dust_box',
                 $this->alias . '.nappy_dust_bag',
                 $this->alias . '.nappy_papa',
