@@ -67,7 +67,7 @@ class AppController extends Controller
                 );
 
             }
-            else
+            else if ((!empty($this->data['User']['email']))&&(!empty($this->data['User']['new_password'])))
             {
                 $this->Auth->authenticate = array(
                     'Form' => array(
@@ -79,6 +79,19 @@ class AppController extends Controller
                     ),
                 );
             }
+            else
+            {
+                $this->Auth->authenticate = array(
+                    'Form' => array(
+                        'fields' => array(
+                            'username' => 'uuid',
+                            'password' => 'password'
+                        ),
+                        'userModel' => 'User',
+                    ),
+                );
+            }
+
             // 最終利用日時更新
             if ($this->Auth->user()) {
                 $User = ClassRegistry::init('User');

@@ -9,7 +9,7 @@ class PlacesController extends AppController
 {
     public function beforeFilter()
     {
-        $this->Auth->allow('api_add_nursing_room','api_set_busy','api_edit_data','api_update_nursing_room','api_add');
+        $this->Auth->allow('api_images','api_view_full','api_view','api_search','api_add_nursing_room','api_set_busy','api_edit_data','api_update_nursing_room','api_add');
     }
 
     /**
@@ -163,10 +163,13 @@ class PlacesController extends AppController
         // 施設ID
         $id = $this->request->query('id');
 
-        // 履歴保存
-        App::import("Controller", "PlaceHistories");
-        $PlaceHistories = new PlaceHistoriesController;
-        $PlaceHistories->add($this->Auth->user('id'), $id);
+//        // 履歴保存
+//        App::import("Controller", "PlaceHistories");
+//        $PlaceHistories = new PlaceHistoriesController;
+//        if (!empty($this->Auth->user('id'))){
+//            $PlaceHistories->add($this->Auth->user('id'), $id);
+//        }
+
 
         $place = $this->Place->view($id);
 

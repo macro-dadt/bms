@@ -8,7 +8,11 @@
  */
 class ReviewsController extends AppController
 {
-
+    public function beforeFilter()
+    {
+        parent::beforeFilter();
+        $this->Auth->allow('api_view','api_place');
+    }
     /**
      * Component
      *

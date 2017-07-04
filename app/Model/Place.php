@@ -704,8 +704,8 @@ class Place extends AppModel
         $data[$this->alias]['milk_seat'] = 1;
         $data[$this->alias]['mamaro'] = 1;
         $data[$this->alias]['floor'] = 0;
-        $data[$this->alias]['user_id'] = 1;
-        $data['Review']['user_id'] = 1;
+        $data[$this->alias]['user_id'] = 2;
+        $data['Review']['user_id'] = 2;
         $this->set($data[$this->alias]);
         // トランザクション不可なのでぞれぞれバリデートを行う
         if ($this->validates(array('_validate' => 'place_add', 'fieldList' => $fieldList))) {

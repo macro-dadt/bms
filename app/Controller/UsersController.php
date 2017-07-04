@@ -14,7 +14,7 @@ class UsersController extends AppController
     public function beforeFilter()
     {
         parent::beforeFilter();
-        $this->Auth->allow('api_login','api_send_notification_to_all_FCM','api_send_notification_to_one_FCM','api_send_notification_to_all','api_send_notification_to_one','api_generate','api_new_generate','api_change_password','api_recovery_password','api_recovery_code_true','api_registered','api_new_password_true');
+        $this->Auth->allow('api_view','api_login','api_send_notification_to_all_FCM','api_send_notification_to_one_FCM','api_send_notification_to_all','api_send_notification_to_one','api_generate','api_new_generate','api_change_password','api_recovery_password','api_recovery_code_true','api_registered','api_new_password_true');
     }
 
 
@@ -58,7 +58,9 @@ class UsersController extends AppController
             $this->set('result', 'success');
             $this->set('_serialize', array('result'));
         } else {
-            throw new ForbiddenException;
+            $this->set('result', 'failedd');
+            $this->set('_serialize', array('result'));
+            //throw new ForbiddenException;
         }
     }
     public function api_logout()
@@ -610,13 +612,21 @@ class UsersController extends AppController
     }
     public function api_send_notification_to_one()
     {
-        $userId = $this->request->query('id');
-        $message = $this->request->query('message');
-        $data = $this->request->query('data');
+
+        $userId = $this->request->data('User.id');
+        $message = $this->request->data('User.message');
+
+        $data = $this->request->data('User.data');
         $token = $this->User->getToken($userId);
         if ($this->User->sendPushMessage($token,$message,$data)){
             $this->set(array(
                 'result'     => 'success',
+                '_serialize' => array('result')
+            ));
+        }
+        else {
+            $this->set(array(
+                'result'     => 'failed',
                 '_serialize' => array('result')
             ));
         }

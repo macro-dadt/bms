@@ -899,10 +899,14 @@ Parameter Example
         // Send the Notification to the Server.
 
         $tResult = fwrite ($tSocket, $tMsg, strlen ($tMsg));
-
+        fclose ($tSocket);
         if ($tResult)
+        {
 
             echo 'Delivered Message to APNS' . PHP_EOL;
+            return true;
+        }
+
 
         else
 
@@ -910,7 +914,8 @@ Parameter Example
 
         // Close the Connection to the Server.
 
-        fclose ($tSocket);
+
+        return false;
 
     }
 
