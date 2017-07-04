@@ -58,9 +58,7 @@ class UsersController extends AppController
             $this->set('result', 'success');
             $this->set('_serialize', array('result'));
         } else {
-            $this->set('result', 'failedd');
-            $this->set('_serialize', array('result'));
-            //throw new ForbiddenException;
+            throw new ForbiddenException;
         }
     }
     public function api_logout()
