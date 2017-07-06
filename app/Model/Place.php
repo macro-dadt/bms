@@ -243,17 +243,16 @@ class Place extends AppModel
     public function beforeValidate($options = array())
     {
         // 追加時
-        if (isset($options['_validate']) && in_array($options['_validate'], array('place_add','place_add_nursing_room', 'place_edit'))) {
+        if (isset($options['_validate']) && in_array($options['_validate'], array('place_admin_add','place_add','place_add_nursing_room', 'place_edit'))) {
             // おむつ、ミルク、トイレの席数はいずれかが必須
             if (empty($this->data[$this->alias]['nappy_seat']) &&
                 empty($this->data[$this->alias]['milk_seat']) &&
-                empty($this->data[$this->alias]['toilet_seat']) &&
-                empty($this->data[$this->alias]['mamaro'])
+                empty($this->data[$this->alias]['toilet_seat'])
             ) {
                 $this->invalidate('nappy_seat', '入力されていません');
                 $this->invalidate('milk_seat', '入力されていません');
                 $this->invalidate('toilet_seat', '入力されていません');
-                $this->invalidate('mamaro', '入力されていません');
+
             }
         }
 
@@ -630,6 +629,79 @@ class Place extends AppModel
 
         $data[$this->alias]['user_id'] = $userId;
         $data['Review']['user_id'] = $userId;
+        $this->set($data[$this->alias]);
+        // トランザクション不可なのでぞれぞれバリデートを行う
+        if ($this->validates(array('_validate' => 'place_add', 'fieldList' => $fieldList))) {
+            $review = array(
+                'Review'      => $data['Review'],
+                'ReviewImage' => $data['ReviewImage'],
+            );
+            if ($this->Review->saveAll($review, array('validate' => 'only', '_validate' => 'place_add'))) {
+                // 全てのバリデーションが完了
+                // まずは施設を保存
+                $res = $this->save();
+                // レビューと画像を保存
+                $review['Review']['place_id'] = $res[$this->alias]['id'];
+                $this->Review->saveAll($review, array('_validate' => 'place_add'));
+                // 平均スター更新
+                $this->starAverageCalc($res[$this->alias]['id']);
+                // レビュー数更新
+                $this->reviewCountCalc($res[$this->alias]['id']);
+
+                #todo ポイント追加
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function admin_add($data)
+    {
+        $fieldList = array(
+            $this->alias => array(
+                'place_category_id',
+                'name',
+                'milk_seat',
+                'milk_baby_car',
+                'milk_papa',
+                'milk_hot_water',
+                'milk_private_room',
+                'nappy_seat',
+                'nappy_dust_box',
+                'nappy_dust_bag',
+                'nappy_papa',
+                'toilet_seat',
+                'toilet_boy',
+                'toilet_girl',
+                'cond_child_chair',
+                'cond_baby_chair',
+                'cond_baby_car',
+                'cond_no_smoke',
+                'cond_store',
+                'cond_parking',
+                'cond_tatami',
+                'cond_indoor',
+                'cond_outdoor',
+                'cond_one_year_old_over',
+                'cond_one_year_old_under',
+                'cond_day_care',
+                'cond_kids_space',
+                'floor',
+                'latlon',
+                'lat',
+                'lon',
+            ),
+        );
+        if (!isset($data['Review'])) {
+            $data['Review'] = array();
+        }
+        if (!isset($data['ReviewImage'])) {
+            $data['ReviewImage'] = array();
+        }
+
+        $data[$this->alias]['user_id'] = '2';
+        $data['Review']['user_id'] = '2';
         $this->set($data[$this->alias]);
         // トランザクション不可なのでぞれぞれバリデートを行う
         if ($this->validates(array('_validate' => 'place_add', 'fieldList' => $fieldList))) {

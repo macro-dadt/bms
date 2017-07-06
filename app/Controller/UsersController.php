@@ -14,7 +14,7 @@ class UsersController extends AppController
     public function beforeFilter()
     {
         parent::beforeFilter();
-        $this->Auth->allow('api_view','api_login','api_send_notification_to_all_FCM','api_send_notification_to_one_FCM','api_send_notification_to_all','api_send_notification_to_one','api_generate','api_new_generate','api_change_password','api_recovery_password','api_recovery_code_true','api_registered','api_new_password_true');
+        $this->Auth->allow('api_view','api_send_notification_to_all_FCM','api_send_notification_to_one_FCM','api_send_notification_to_all','api_send_notification_to_one','api_generate','api_new_generate','api_change_password','api_recovery_password','api_recovery_code_true','api_registered','api_new_password_true');
     }
 
 
@@ -64,7 +64,7 @@ class UsersController extends AppController
     public function api_logout()
     {
         if($this->Auth->logout()) {
-            session_destroy ();
+            //session_destroy ();
             $this->set('result', 'success');
             $this->set('_serialize', array('result'));
         } else {

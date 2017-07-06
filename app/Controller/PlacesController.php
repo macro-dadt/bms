@@ -9,7 +9,7 @@ class PlacesController extends AppController
 {
     public function beforeFilter()
     {
-        $this->Auth->allow('api_images','api_view_full','api_view','api_search','api_add_nursing_room','api_set_busy','api_edit_data','api_update_nursing_room','api_add');
+        $this->Auth->allow('api_admin_add','api_images','api_view_full','api_view','api_search','api_add_nursing_room','api_set_busy','api_edit_data','api_update_nursing_room','api_add');
     }
 
     /**
@@ -74,6 +74,20 @@ class PlacesController extends AppController
     /**
      * 施設新規投稿
      */
+    public function api_admin_add()
+    {
+        if ($this->Place->admin_add($this->request->data)) {
+            $this->set(array(
+                'result'     => 'success',
+                '_serialize' => array('result')
+            ));
+        } else {
+            $this->set(array(
+                'errors'     => array_merge($this->Place->validationErrors),
+                '_serialize' => array('errors')
+            ));
+        }
+    }
     public function api_add()
     {
         if ($this->Place->add($this->Auth->user('id'), $this->request->data)) {

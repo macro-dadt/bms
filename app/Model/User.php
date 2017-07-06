@@ -469,6 +469,7 @@ class User extends AppModel
                 $this->alias . '.point',
                 $this->alias . '.tel',
                 $this->alias . '.email',
+                $this->alias . '.uuid',
             ),
             'contain'    => array(
                 'Child'     => array(
@@ -750,6 +751,9 @@ class User extends AppModel
     function change_password($email,$new_password){
         $user = $this->findByEmail($email);
         $user['User']['new_password'] =  $new_password;
+        if (empty($new_password)){
+            return false;
+        }
 
         if($this->save($user, array(
             '_validate' => 'change_password'
