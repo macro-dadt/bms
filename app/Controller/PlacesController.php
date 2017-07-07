@@ -78,7 +78,7 @@ class PlacesController extends AppController
     {
         if ($this->Place->admin_add($this->request->data)) {
             $this->set(array(
-                'result'     => 'success',
+                'result'     => $this->Place->getLastInsertId(),
                 '_serialize' => array('result')
             ));
         } else {
