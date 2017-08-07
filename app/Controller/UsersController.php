@@ -14,7 +14,7 @@ class UsersController extends AppController
     public function beforeFilter()
     {
         parent::beforeFilter();
-        $this->Auth->allow('api_view','api_send_notification_to_all_FCM','api_send_notification_to_one_FCM','api_send_notification_to_all','api_send_notification_to_one','api_generate','api_new_generate','api_change_password','api_recovery_password','api_recovery_code_true','api_registered','api_new_password_true');
+        $this->Auth->allow('api_view','api_send_notification_to_all_FCM','api_send_notification_to_one_FCM','api_send_notification_to_all','api_send_notification_to_one','api_generate','api_new_generate','api_change_password','api_recovery_password','api_recovery_code_true','api_registered','api_new_password_true','api_change_email');
     }
 
 
@@ -38,7 +38,7 @@ class UsersController extends AppController
     public function api_generate()
     {
 
-        if ($this->User->generate($this->request->data('User.uuid'), $this->request->data('User.password'))) {
+        if ($this->User->new_generate($this->request->data('User.email'), $this->request->data('User.social_id'), $this->request->data('User.name'), $this->request->data('User.new_password'))) {
             // 登録が完了したらログインする
             $this->setAction('api_login');
         } else {
@@ -63,6 +63,7 @@ class UsersController extends AppController
     }
     public function api_logout()
     {
+        $this->setAction('api_login');
         if($this->Auth->logout()) {
             //session_destroy ();
             $this->set('result', 'success');
@@ -390,6 +391,21 @@ class UsersController extends AppController
         $new_password = $this->request->data('User.new_password');
         $email = $this->request->data('User.email');
         if ($this->User->change_password($email,$new_password)){
+            $this->set(array(
+                'result'     => 'success',
+                '_serialize' => array('result')
+            ));
+        }
+        else {
+            $this->set(array(
+                'errors'     => 'パスワード変更できません',
+                '_serialize' => array('errors')
+            ));
+        }
+    }
+    public function api_change_email(){
+        $email = $this->request->data('User.email');
+        if ($this->User->change_email($email)){
             $this->set(array(
                 'result'     => 'success',
                 '_serialize' => array('result')

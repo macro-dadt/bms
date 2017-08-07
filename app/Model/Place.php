@@ -231,7 +231,8 @@ class Place extends AppModel
                     'allowEmpty' => true
                 ),
             ),
-        )
+        ),
+        'admin_edit' => array()
     );
 
     /**
@@ -970,7 +971,7 @@ class Place extends AppModel
         );
 
         $data[$this->alias]['id'] = $id;
-        $data[$this->alias]['user_id'] = 1;
+        $data[$this->alias]['user_id'] = 2;
 
         $this->set($data[$this->alias]);
         // トランザクション不可なのでぞれぞれバリデートを行う
@@ -1111,6 +1112,61 @@ class Place extends AppModel
             return $result;
         }
 
+        return false;
+    }
+    public function adminEditData($id,$data, $validateOnly = false)
+    {
+        $fieldList = $this->find('first', array(
+            'fields'     => array(
+                $this->alias . '.id',
+                $this->alias . '.name',
+                $this->alias . '.floor',
+                $this->alias . '.place_category_id',
+                $this->alias . '.star',
+                $this->alias . '.review_count',
+                $this->alias . '.milk_seat',
+                $this->alias . '.milk_baby_car',
+                $this->alias . '.milk_papa',
+                $this->alias . '.milk_hot_water',
+                $this->alias . '.milk_private_room',
+                $this->alias . '.nappy_seat',
+                $this->alias . '.nappy_dust_box',
+                $this->alias . '.nappy_dust_bag',
+                $this->alias . '.nappy_papa',
+                $this->alias . '.toilet_seat',
+                $this->alias . '.toilet_boy',
+                $this->alias . '.toilet_girl',
+                $this->alias . '.cond_child_chair',
+                $this->alias . '.cond_baby_chair',
+                $this->alias . '.cond_baby_car',
+                $this->alias . '.cond_no_smoke',
+                $this->alias . '.cond_store',
+                $this->alias . '.cond_parking',
+                $this->alias . '.cond_tatami',
+                $this->alias . '.cond_indoor',
+                $this->alias . '.cond_outdoor',
+                $this->alias . '.cond_one_year_old_over',
+                $this->alias . '.cond_one_year_old_under',
+                $this->alias . '.cond_day_care',
+                $this->alias . '.cond_kids_space',
+                $this->alias . '.tel',
+                $this->alias . '.address',
+                $this->alias . '.url',
+                $this->alias . '.usable_week_day',
+                $this->alias . '.usable_time',
+            ),
+            'conditions' => array(
+                $this->alias . '.id'      => $id,
+            )
+        ));
+        //$this->set($data[$this->alias]);
+        $data[$this->alias]['id'] = $id;
+        if ($this->saveAll($data, array('validate' => 'only', '_validate' => 'admin_edit', 'fieldList' => $fieldList))) {
+            if ($validateOnly) {
+                return true;
+            }
+            return $this->saveAll($data, array('_validate' => 'admin_edit','fieldList' => $fieldList));
+        }
         return false;
     }
     public function editNursingRoom($id)
@@ -1300,6 +1356,15 @@ class Place extends AppModel
                 )
             )
         ));
+        foreach ($result as &$t) {
+            $image = Hash::extract($t, 'Review.{n}.ReviewImage.0.url');
+            if ($image) {
+                $t['Place']['image_url'] = $image[0];
+            } else {
+                $t['Place']['image_url'] = '';
+            }
+            unset($t['Review']);
+        }
 
         // 広告がなかったらデフォルトを設定
         if($result && empty($result[0]['PlaceAd'])) {

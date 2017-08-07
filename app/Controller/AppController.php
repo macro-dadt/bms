@@ -53,6 +53,7 @@ class AppController extends Controller
     public function beforeFilter()
     {
         //exit(0);
+        //$this->Cookie->time = '5 Days';
 
         if ($this->request->prefix == 'api') {
             if (!empty($this->data['User']['social_id'])) {
@@ -99,8 +100,6 @@ class AppController extends Controller
             }
         }
     }
-
-
     /**
      * Before Render
      */

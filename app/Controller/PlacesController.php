@@ -9,7 +9,7 @@ class PlacesController extends AppController
 {
     public function beforeFilter()
     {
-        $this->Auth->allow('api_admin_add','api_images','api_view_full','api_view','api_search','api_add_nursing_room','api_set_busy','api_edit_data','api_update_nursing_room','api_add');
+        $this->Auth->allow('api_admin_edit_data','api_admin_add','api_images','api_view_full','api_view','api_search','api_add_nursing_room','api_set_busy','api_edit_data','api_update_nursing_room','api_add');
     }
 
     /**
@@ -132,7 +132,23 @@ class PlacesController extends AppController
     {
         if ($edit = $this->Place->editData($this->Auth->user('id'), $id)) {
             $this->set(array(
-                'edit'       => $edit,
+                'edit'       => 'success',
+                '_serialize' => array('edit')
+            ));
+        } else {
+            $this->set(array(
+                'error'      => '取得できませんでした',
+                '_serialize' => array('error')
+            ));
+        }
+    }
+    public function api_admin_edit_data()
+    {
+        $id = $this->request->query('id');
+        $data = $this->request->data;
+        if ($edit = $this->Place->adminEditData($id,$data)) {
+            $this->set(array(
+                'edit'       => 'ahihi',
                 '_serialize' => array('edit')
             ));
         } else {

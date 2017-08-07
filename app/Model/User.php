@@ -148,6 +148,7 @@ class User extends AppModel
                 'isUnique' => array(
                     'rule'    => 'isUnique',
                     'message' => '登録されています',
+                    'allowEmpty' => true
                 ),
 
             ),
@@ -749,14 +750,29 @@ class User extends AppModel
         return $user['User']['token'];
     }
     function change_password($email,$new_password){
+    $user = $this->findByEmail($email);
+    $user['User']['new_password'] =  $new_password;
+    if (empty($new_password)){
+        return false;
+    }
+
+    if($this->save($user, array(
+        '_validate' => 'change_password'
+    ))) {
+        return true;
+    } else {
+        return false;
+    }
+}
+    function change_email($email){
         $user = $this->findByEmail($email);
-        $user['User']['new_password'] =  $new_password;
-        if (empty($new_password)){
+        $user['User']['email'] =  $email;
+        if (empty($email)){
             return false;
         }
 
         if($this->save($user, array(
-            '_validate' => 'change_password'
+            '_validate' => 'change_email'
         ))) {
             return true;
         } else {
